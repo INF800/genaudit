@@ -11,7 +11,17 @@ from peft import PeftConfig
 
 
 class HFPredictor(object):
-    def __init__(self, model_name, gpu_idx=0, nbeams=4, max_decode_len=999):
+    def __init__(
+        self,
+        model_name,
+        gpu_idx: int | list[int] = 0,
+        nbeams=4,
+        max_decode_len=999,
+        max_memory=None,
+    ):
+        if max_memory:
+            assert isinstance(gpu_idx, list), f"gpu_idx must be a list of indices."
+
         adapter_config = PeftConfig.from_pretrained(model_name)
         base_model_name_or_path = adapter_config.base_model_name_or_path
 
@@ -39,10 +49,16 @@ class HFPredictor(object):
         else:
             model_cls = AutoModelForCausalLM
 
+        if max_memory:
+            device_map = "auto"
+        else:
+            device_map = {"": gpu_idx}
+
         model = model_cls.from_pretrained(
             base_model_name_or_path,
             quantization_config=bnb_config,
-            device_map={"": gpu_idx},
+            device_map=device_map,
+            max_memory={idx: "24GB" for idx in gpu_idx},
         )
 
         model.config.use_cache = True
