@@ -112,46 +112,46 @@ class FactChecker(object):
             "evidence_labels": [0],
         }
 
-        try:
-            output = self.model.predict(dp)
+        # try:
+        output = self.model.predict(dp)
 
-            fixed_output = output.split("REVISION:")[1].strip()
-            ev_sentids = output.split("REVISION:")[0].split("EVIDENCE: ")[1].strip()
+        fixed_output = output.split("REVISION:")[1].strip()
+        ev_sentids = output.split("REVISION:")[0].split("EVIDENCE: ")[1].strip()
 
-            ev_labels = []
-            for one_sentid in ev_sentids.split(" "):
-                this_idx = one_sentid.split("SENT")[-1]
-                try:
-                    ev_labels.append(int(this_idx))
-                except:
-                    # this will happen if no evidence was predicted or if the outputs were badly formatted
-                    continue
+        ev_labels = []
+        for one_sentid in ev_sentids.split(" "):
+            this_idx = one_sentid.split("SENT")[-1]
+            try:
+                ev_labels.append(int(this_idx))
+            except:
+                # this will happen if no evidence was predicted or if the outputs were badly formatted
+                continue
 
-            diff = get_shift(
-                summary_line=claim,
-                fixed_output=fixed_output,
-                allow_additions=self.allow_additions,
-            )
+        diff = get_shift(
+            summary_line=claim,
+            fixed_output=fixed_output,
+            allow_additions=self.allow_additions,
+        )
 
-            result = {
-                "evidence_labels": ev_labels,
-                "todelete_spans": diff["todelete_spans"],
-                "replacement_strings": diff["replacement_strings"],
-            }
+        result = {
+            "evidence_labels": ev_labels,
+            "todelete_spans": diff["todelete_spans"],
+            "replacement_strings": diff["replacement_strings"],
+        }
 
-            # adjust for the spaces at the beginning
-            todelete_spans = result["todelete_spans"]
-            for j in range(len(todelete_spans)):
-                todelete_spans[j][0] += num_frontspaces
-                todelete_spans[j][1] += num_frontspaces
+        # adjust for the spaces at the beginning
+        todelete_spans = result["todelete_spans"]
+        for j in range(len(todelete_spans)):
+            todelete_spans[j][0] += num_frontspaces
+            todelete_spans[j][1] += num_frontspaces
 
-            return {"result": result, "success": True}
+        return {"result": result, "success": True}
 
-        except:
-            # need to always return something in case there is an error. else threads waiting for it in the frontend code will stall forever
-            result = {
-                "evidence_labels": [],
-                "todelete_spans": [],
-                "replacement_strings": [],
-            }
-            return {"result": result, "success": False}
+        # except:
+        #     # need to always return something in case there is an error. else threads waiting for it in the frontend code will stall forever
+        #     result = {
+        #         "evidence_labels": [],
+        #         "todelete_spans": [],
+        #         "replacement_strings": [],
+        #     }
+        #     return {"result": result, "success": False}
