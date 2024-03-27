@@ -1,3 +1,4 @@
+import torch
 from .utils import get_shift
 from .hf_predictor import HFPredictor
 import spacy
@@ -69,7 +70,8 @@ class FactChecker(object):
 
         results = {"reference_sents": reference_sents, "claim_sents": []}
         for j, claimsent in enumerate(claim_sents):
-            output = self.predict(reference_sents, claimsent, claim_sents[:j])
+            with torch.no_grad():
+                output = self.predict(reference_sents, claimsent, claim_sents[:j])
             if not output["success"]:
                 results["claim_sents"].append({"txt": claimsent, "success": False})
             else:

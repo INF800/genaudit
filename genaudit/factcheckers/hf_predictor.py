@@ -62,12 +62,14 @@ class HFPredictor(object):
         )
 
         model.config.use_cache = True
+        model.eval()
 
         mdl2 = PeftModel.from_pretrained(
             model, model_name, torch_dtype=torch.bfloat16, device_map={"": gpu_idx}
         )
         model.gradient_checkpointing_disable()
         mdl2.gradient_checkpointing_disable()
+        mdl2.eval()
 
         self.model = mdl2
         self.is_encoder_decoder = model.config.is_encoder_decoder
